@@ -3,6 +3,8 @@
 import time
 from pathlib import Path
 import os
+import pygame
+import sys
 #Here variables
 score = 0
 username = ""
@@ -17,7 +19,7 @@ intInput = 0
 #Here place functions
 def syncData():
     global sync
-    print("Loading data...")
+    print("Wczytywanie danych...")
     try:
         with open("data.txt", "r") as f:
             data = f.read().splitlines()
@@ -29,57 +31,103 @@ def syncData():
             currentLesson = int(data[4])
             sync = True
     except FileNotFoundError:
-        print("No data file found.")
+        print("Nie znaleziono pliku z danymi.")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Wystąpił błąd: {e}")
+
+def syncIn():
+    with open("data.txt", "w") as f:
+        f.write(f"{score}\n{username}\n{coins}\n{currentLevel}\n{currentLesson}")
+    return "Dane zostały zsynchronizowane."
 
 def initializeGame():
-    print("Welcome to DuoPython!")
+    os.system("cls" if os.name == "nt" else "clear")
+    print("Witaj w DuoPython!")
     time.sleep(2)
     if Path("data.txt").exists():
-        print("Save detected.")
+        print("Znaleziono zapis.")
+        print("Aby usunąć zapis, wpisz '2' w następnym pytaniu.")
     else:
-        print("No save detected.")
-    intInput = input("Do you want to load your save? (1 for yes, 0 for no): ")
+        print("Nie znaleziono zapisu.")
+    intInput = input("Czy chcesz wczytać zapis? (1 - tak, 0 - nie): ")
     if intInput == "1":
         syncData()
         if sync:
-            print("Data loaded successfully.")
+            print("Dane wczytano pomyślnie.")
             return True
         else:
-            print("Failed to load data.")
-            initializeGame()
+            print("Nie udało się wczytać danych.")
+            time.sleep(5)
+            return initializeGame()
     elif intInput == "0":
         if Path("data.txt").exists():
-            print("Starting a new game will overwrite your existing save.")
-            intInput = input("Are you sure you want to continue? (1 for yes, 0 for no): ")
-            if intInput == "1":
-                print("Starting a new game...")
+            print("Rozpoczęcie nowej gry nadpisze istniejący zapis.")
+            intInput = input('Czy na pewno chcesz kontynuować? \n Aby potwierdzić, wpisz "USUŃ MOJE PLIKI": ')
+            if intInput == "USUŃ MOJE PLIKI":
+                print("Rozpoczynanie nowej gry...")
                 score = 0
-                username = input("Enter your username: ")
+                username = input("Podaj nazwę użytkownika: ")
                 coins = 0
                 currentLevel = 0
                 currentLesson = 0
                 with open("data.txt", "w") as f:
                  f.write(f"{score}\n{username}\n{coins}\n{currentLevel}\n{currentLesson}")
-                print("New game started.")
+                print("Rozpoczęto nową grę.")
                 return True
+            else:
+                print("Anulowano nową grę. Powrót do menu głównego.")
+                time.sleep(5)
+                return initializeGame()
         else:
-            print("Starting a new game...")
+            print("Rozpoczynanie nowej gry...")
             score = 0
-            username = input("Enter your username: ")
+            username = input("Podaj nazwę użytkownika: ")
             coins = 0
             currentLevel = 0
             currentLesson = 0
             with open("data.txt", "w") as f:
                 f.write(f"{score}\n{username}\n{coins}\n{currentLevel}\n{currentLesson}")
-            print("New game started.")
+            print("Rozpoczęto nową grę.")
             return True
+    elif intInput == "2":
+        if Path("data.txt").exists():
+            intInput = input('Czy na pewno chcesz kontynuować? \n Aby potwierdzić, wpisz "USUŃ MOJE PLIKI": ')
+            if intInput == "USUŃ MOJE PLIKI":
+                os.remove("data.txt")
+                print("Plik zapisu został usunięty.")
+                time.sleep(5)
+                return initializeGame()
+            else:
+                print("Anulowano usuwanie zapisu. Powrót do menu głównego.")
+                time.sleep(5)
+                return initializeGame()
+        else:
+            print("Brak pliku zapisu do usunięcia.")
+            time.sleep(5)
+            return initializeGame()
     else:
-        print("Invalid input. Please provide a valid response.")
-        time.sleep(2)
+        print("Nieprawidłowa odpowiedź. Wprowadź poprawną wartość.")
+        time.sleep(5)
         os.system("cls" if os.name == "nt" else "clear")
-        initializeGame()
+        return initializeGame()
 #THE STARTUP SEQUENCE
-initializeGame()
+os.system("cls" if os.name == "nt" else "clear")
+if initializeGame() == True:
+    print("Gra została pomyślnie uruchomiona.")
+    os.system("cls" if os.name == "nt" else "clear")
+else:
+    print("Nie udało się uruchomić gry.")
+    exit()
+if currentLesson == 0:
+    currentLesson = 1
+else:
+    pass
+if currentLevel == 0:
+    currentLevel = 1
+else:
+    pass
+
+print(syncIn())
 #yes... theres nothing else here...
+
+print(f"Cześć! Jestem Lui! \n Witaj w Duo Python, {username}! \n Masz {coins} monet. \n Rozpocznijmy poziom {currentLevel}, lekcję {currentLesson}!")
